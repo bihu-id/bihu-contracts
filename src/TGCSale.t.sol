@@ -168,11 +168,6 @@ contract TGCSaleTest is DSTest, DSExec {
 
     }
 
-    function testTokenOwnershipBeforeFinalize() {
-
-        sale.freezeToken();
-    }
-
     function testTokenOwnershipAfterFinalize() {
 
         sale.addTime(14 days);
@@ -211,11 +206,6 @@ contract TGCSaleTest is DSTest, DSExec {
     function testFailTransferBeforeFinalize() {
         user1.doBuy(1 ether);
         assert(user1.doTransfer(user2, 200000 * 1 ether));
-    }
-
-    function testFailAfterPause() {
-        sale.pauseContribution();
-        exec(sale, 100 ether);
     }
 
     function testEndTimeAfterSoftLimit(){

@@ -1,15 +1,9 @@
 [submodule "lib/ds-test"]
 	path = lib/ds-test
 	url = https://github.com/dapphub/ds-test
-[submodule "lib/ds-token"]
-	path = lib/ds-token
-	url = https://github.com/clar/ds-token
 [submodule "lib/ds-auth"]
 	path = lib/ds-auth
 	url = https://github.com/dapphub/ds-auth
-[submodule "lib/gnosis-multisig"]
-	path = lib/gnosis-multisig
-	url = https://github.com/dapphub/gnosis-multisig
 [submodule "lib/ds-exec"]
 	path = lib/ds-exec
 	url = https://github.com/dapphub/ds-exec
@@ -19,3 +13,6 @@
 [submodule "lib/ds-math"]
 	path = lib/ds-math
 	url = https://github.com/dapphub/ds-math
+[submodule "lib/ds-token"]
+	path = lib/ds-token
+	url = https://github.com/dapphub/ds-token
