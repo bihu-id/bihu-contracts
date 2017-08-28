@@ -4,9 +4,6 @@
 [submodule "lib/ds-auth"]
 	path = lib/ds-auth
 	url = https://github.com/dapphub/ds-auth
-[submodule "lib/gnosis-multisig"]
-	path = lib/gnosis-multisig
-	url = https://github.com/dapphub/gnosis-multisig
 [submodule "lib/ds-exec"]
 	path = lib/ds-exec
 	url = https://github.com/dapphub/ds-exec
