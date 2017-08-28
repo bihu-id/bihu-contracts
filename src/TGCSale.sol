@@ -93,26 +93,36 @@ contract TGCSale is DSAuth, DSMath, DSNote, DSExec {
         // owner is for test
         assert(msg.sender == owner || add(userBuys[msg.sender], msg.value) <= USER_BUY_LIMIT);
 
-        uint rate = PUBLIC_SALE_PRICE;
+        assert(sold < SELL_HARD_LIMIT);
 
-        uint requested = mul(msg.value, rate);
-        assert(add(sold, requested) <= SELL_HARD_LIMIT);
+        uint rate = PUBLIC_SALE_PRICE;
+        uint toFund = msg.value;
+
+        uint requested = mul(toFund, rate);
+
+        if( add(sold, requested) >= SELL_HARD_LIMIT) {
+            requested = SELL_HARD_LIMIT - sold;
+            toFund = div(requested, rate);
+
+            endTime = time();
+        }
 
         sold = add(sold, requested);
-
-        userBuys[msg.sender] = add(userBuys[msg.sender], msg.value);
 
         if( !moreThanSoftLimit && sold >= SELL_SOFT_LIMIT ) {
             moreThanSoftLimit = true;
             endTime = time() + 24 hours; // last 24 hours after soft limit,
         }
 
-        if ( sold == SELL_HARD_LIMIT) {
-            endTime = time();
-        }
+        userBuys[msg.sender] = add(userBuys[msg.sender], toFund);
 
         tgc.authTransfer(msg.sender, requested);
-        exec(destFoundation, msg.value); // send the ETH to multisig
+        exec(destFoundation, toFund); // send the ETH to multisig
+
+        uint toReturn = sub(msg.value, toFund);
+        if(toReturn > 0) {
+            msg.sender.transfer(toReturn);
+        }
     }
 
     function pauseContribution() auth note{

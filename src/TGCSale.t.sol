@@ -141,6 +141,13 @@ contract TGCSaleTest is DSTest, DSExec {
         assertEq(sale.endTime(), now + 16 days);
     }
 
+    function testHitSoftCap() {
+        exec(sale, 30000 ether);
+        exec(sale, 30000 ether);
+
+        assertEq(sale.endTime(), now + 24 hours);
+    }
+
     function testFinalize() {
 
         // sell 70000 ether, remains 30000 ether
@@ -186,6 +193,19 @@ contract TGCSaleTest is DSTest, DSExec {
         assertEq(tgc.balanceOf(user1), 0);
         assertEq(tgc.balanceOf(user2), 200000 * 1 ether);
 
+    }
+
+    function testBuyExceedHardLimit() {
+
+        exec(sale, 99900 ether);
+
+        // one 100 ether left, 200 ether will return
+        user1.doBuy(300 ether);
+
+        assertEq(tgc.balanceOf(user1), 200000 * 100 ether);
+        assertEq(user1.balance, 500 ether);
+
+        assertEq(sale.endTime(), now);
     }
 
     function testFailTransferBeforeFinalize() {
