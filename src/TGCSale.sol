@@ -8,16 +8,14 @@ import "ds-auth/auth.sol";
 import "ds-note/note.sol";
 import "ds-math/math.sol";
 
-contract TGCSale is DSAuth, DSMath, DSNote, DSExec {
+contract TGCSale is DSStop, DSMath, DSExec {
 
     DSToken public tgc;
 
     // TGC PRICES (ETH/TGC)
-    uint public constant PUBLIC_SALE_PRICE = 200000;
+    uint128 public constant PUBLIC_SALE_PRICE = 200000 ether;
 
-    // test
-    //uint128 public constant TOTAL_SUPPLY = (10 ** 6) * (10 ** 18);  // 100 billion TGC in total
-    uint128 public constant TOTAL_SUPPLY = (10 ** 11) * (10 ** 18);  // 100 billion TGC in total
+    uint128 public constant TOTAL_SUPPLY = 10 ** 11 * 1 ether;  // 100 billion TGC in total
 
 
     uint128 public constant SELL_SOFT_LIMIT = TOTAL_SUPPLY * 10 / 100; // soft limit is 10%
@@ -32,7 +30,6 @@ contract TGCSale is DSAuth, DSMath, DSNote, DSExec {
     uint public startTime;
     uint public endTime;
 
-    bool public paused;
     bool public moreThanSoftLimit;
 
 
@@ -40,13 +37,7 @@ contract TGCSale is DSAuth, DSMath, DSNote, DSExec {
 
     address public destFoundation; //multisig account , 4-of-6
 
-    uint sold;
-
-
-    modifier notPaused() {
-        require(!paused);
-        _;
-    }
+    uint128 sold;
 
     function TGCSale(uint startTime_, address destFoundation_) {
 
@@ -59,13 +50,10 @@ contract TGCSale is DSAuth, DSMath, DSNote, DSExec {
 
         tgc.mint(TOTAL_SUPPLY);
 
-        tgc.authTransfer(destFoundation, FUTURE_DISTRIBUTE_LIMIT);
+        tgc.transfer(destFoundation, FUTURE_DISTRIBUTE_LIMIT);
 
         //disable transfer
         tgc.stop();
-
-        paused = false;
-        moreThanSoftLimit = false;
     }
 
     // overrideable for easy testing
@@ -82,7 +70,7 @@ contract TGCSale is DSAuth, DSMath, DSNote, DSExec {
         return size > 0;
     }
 
-    function() payable notPaused note {
+    function() payable stoppable note {
 
         require(!isContract(msg.sender));
         require(msg.value >= 0.01 ether);
@@ -95,19 +83,19 @@ contract TGCSale is DSAuth, DSMath, DSNote, DSExec {
 
         assert(sold < SELL_HARD_LIMIT);
 
-        uint rate = PUBLIC_SALE_PRICE;
-        uint toFund = msg.value;
+        var rate = PUBLIC_SALE_PRICE;
+        var toFund = cast(msg.value);
 
-        uint requested = mul(toFund, rate);
+        var requested = wmul(toFund, rate);
 
         if( add(sold, requested) >= SELL_HARD_LIMIT) {
             requested = SELL_HARD_LIMIT - sold;
-            toFund = div(requested, rate);
+            toFund = wdiv(requested, rate);
 
             endTime = time();
         }
 
-        sold = add(sold, requested);
+        sold = hadd(sold, requested);
 
         if( !moreThanSoftLimit && sold >= SELL_SOFT_LIMIT ) {
             moreThanSoftLimit = true;
@@ -116,21 +104,16 @@ contract TGCSale is DSAuth, DSMath, DSNote, DSExec {
 
         userBuys[msg.sender] = add(userBuys[msg.sender], toFund);
 
-        tgc.authTransfer(msg.sender, requested);
+        tgc.start();
+        tgc.transfer(msg.sender, requested);
+        tgc.stop();
+
         exec(destFoundation, toFund); // send the ETH to multisig
 
         uint toReturn = sub(msg.value, toFund);
         if(toReturn > 0) {
             msg.sender.transfer(toReturn);
         }
-    }
-
-    function pauseContribution() auth note{
-        paused = true;
-    }
-
-    function resumeContribution() auth note{
-        paused = false;
     }
 
     function setStartTime(uint startTime_) auth note{
@@ -145,20 +128,15 @@ contract TGCSale is DSAuth, DSMath, DSNote, DSExec {
 
         uint256 unsold = sub(SELL_HARD_LIMIT, sold);
 
-        if(unsold > 0){
-            tgc.authTransfer(destFoundation, unsold);
-        }
-
         // enable transfer
         tgc.start();
 
+        if(unsold > 0){
+            tgc.transfer(destFoundation, unsold);
+        }
+
         // owner -> destFoundation
         tgc.setOwner(destFoundation);
-    }
-
-    // disable token transfer
-    function freezeToken() auth note{
-        tgc.stop();
     }
 
 
