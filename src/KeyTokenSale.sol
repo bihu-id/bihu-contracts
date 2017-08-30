@@ -18,10 +18,10 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
     uint128 public constant TOTAL_SUPPLY = 10 ** 11 * 1 ether;  // 100 billion KEY in total
 
 
-    uint128 public constant SELL_SOFT_LIMIT = TOTAL_SUPPLY * 10 / 100; // soft limit is 10%
-    uint128 public constant SELL_HARD_LIMIT = TOTAL_SUPPLY * 20 / 100; // hard limit is 20%
+    uint128 public constant SELL_SOFT_LIMIT = TOTAL_SUPPLY * 12 / 100; // soft limit is 12% , 60000 eth
+    uint128 public constant SELL_HARD_LIMIT = TOTAL_SUPPLY * 16 / 100; // hard limit is 16% , 80000 eth
 
-    uint128 public constant FUTURE_DISTRIBUTE_LIMIT = TOTAL_SUPPLY * 80 / 100; // 80% for future distribution
+    uint128 public constant FUTURE_DISTRIBUTE_LIMIT = TOTAL_SUPPLY * 84 / 100; // 84% for future distribution
 
     uint128 public constant USER_BUY_LIMIT = 500 ether; // 500 ether limit
     uint128 public constant MAX_GAS_PRICE = 50000000000;  // 50GWei
@@ -72,7 +72,7 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
 
     function() payable stoppable note {
 
-        require(!isContract(msg.sender));
+        //require(!isContract(msg.sender));
         require(msg.value >= 0.01 ether);
         require(tx.gasprice <= MAX_GAS_PRICE);
 

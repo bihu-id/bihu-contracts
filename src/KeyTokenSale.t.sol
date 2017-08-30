@@ -93,11 +93,11 @@ contract KeyTokenSaleTest is DSTest, DSExec {
 
 
     function testKeySaleToken() {
-        assertEq(key.balanceOf(sale), (10 ** 11)*(10 ** 18) * 20 / 100 );
+        assertEq(key.balanceOf(sale), (10 ** 11)* 16 / 100 * 1 ether);
     }
 
     function testFoundationToken() {
-        assertEq(key.balanceOf(keyFoundation), (10 ** 11)*(10 ** 18) * 80 / 100 );
+        assertEq(key.balanceOf(keyFoundation), (10 ** 11)* 84 / 100 * 1 ether);
     }
 
 
@@ -150,19 +150,18 @@ contract KeyTokenSaleTest is DSTest, DSExec {
 
     function testFinalize() {
 
-        // sell 70000 ether, remains 30000 ether
+        // sell 70000 ether, remains 10000 ether
         exec(sale, 70000 ether);
 
         sale.addTime(14 days);
 
-
-        assertEq(key.balanceOf(sale), 30000 * 200000 * (10**18) );
-        assertEq(key.balanceOf(keyFoundation), ( (10 ** 11) * 80 / 100 ) * (10**18) );
+        assertEq(key.balanceOf(sale), 10000 * 200000 * 1 ether);
+        assertEq(key.balanceOf(keyFoundation), ( (10 ** 11) * 84 / 100 ) * 1 ether );
 
         sale.finalize();
 
         assertEq(key.balanceOf(sale), 0 );
-        assertEq(key.balanceOf(keyFoundation), ( (10 ** 11) * 80 / 100 + 30000 * 200000) * (10**18) );
+        assertEq(key.balanceOf(keyFoundation), ( (10 ** 11) * 84 / 100 + 10000 * 200000) * 1 ether );
 
         assertEq(keyFoundation.balance, 70000 ether);
 
@@ -192,7 +191,7 @@ contract KeyTokenSaleTest is DSTest, DSExec {
 
     function testBuyExceedHardLimit() {
 
-        exec(sale, 99900 ether);
+        exec(sale, 79900 ether);
 
         // one 100 ether left, 200 ether will return
         user1.doBuy(300 ether);
@@ -214,8 +213,8 @@ contract KeyTokenSaleTest is DSTest, DSExec {
         assertEq(sale.endTime(), now + 14 days);
 
         // hit soft limit
-        exec(sale, 50000 ether);
-        assertEq(key.balanceOf(this), 200000 * 50000 ether);
+        exec(sale, 60000 ether);
+        assertEq(key.balanceOf(this), 200000 * 60000 ether);
 
         // 24 hours left for sell
         assertEq(sale.endTime(), now + 24 hours);
@@ -223,7 +222,7 @@ contract KeyTokenSaleTest is DSTest, DSExec {
 
     function testFailSoftLimit() {
 
-        exec(sale, 50000 ether);
+        exec(sale, 60000 ether);
 
         sale.addTime(24 hours);
 
