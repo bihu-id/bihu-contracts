@@ -112,7 +112,7 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
 
         uint toReturn = sub(msg.value, toFund);
         if(toReturn > 0) {
-            msg.sender.transfer(toReturn);
+            exec(msg.sender, toReturn);
         }
     }
 
@@ -123,7 +123,7 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
         endTime = startTime + 14 days;
     }
 
-    function finalize() auth note{
+    function finalize() auth note {
         require(time() >= endTime);
 
         uint256 unsold = sub(SELL_HARD_LIMIT, sold);
@@ -140,20 +140,14 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
     }
 
 
-    /// @notice This method can be used by the controller to extract mistakenly
-    ///  sent tokens to this contract.
-    /// @param _token The address of the token contract that you want to recover
-    ///  set to 0 in case you want to extract ether.
-    function claimTokens(address _token) public auth note{
-
-        if (_token == 0x0) {
-            owner.transfer(this.balance);
-            return;
-        }
-
+    // @notice This method can be used by the controller to extract mistakenly
+    //  sent tokens to this contract.
+    // @param dst The address that will be receiving the tokens
+    // @param wad The amount of tokens to transfer
+    // @param _token The address of the token contract that you want to recover
+    function transferTokens(address dst, uint wad, address _token) public auth note {
         ERC20 token = ERC20(_token);
-        uint256 balance = token.balanceOf(this);
-        token.transfer(owner, balance);
+        token.transfer(dst, wad);
     }
 
 }
