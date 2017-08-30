@@ -8,14 +8,14 @@ import "ds-auth/auth.sol";
 import "ds-note/note.sol";
 import "ds-math/math.sol";
 
-contract TGCSale is DSStop, DSMath, DSExec {
+contract KeyTokenSale is DSStop, DSMath, DSExec {
 
-    DSToken public tgc;
+    DSToken public key;
 
-    // TGC PRICES (ETH/TGC)
+    // KEY PRICES (ETH/KEY)
     uint128 public constant PUBLIC_SALE_PRICE = 200000 ether;
 
-    uint128 public constant TOTAL_SUPPLY = 10 ** 11 * 1 ether;  // 100 billion TGC in total
+    uint128 public constant TOTAL_SUPPLY = 10 ** 11 * 1 ether;  // 100 billion KEY in total
 
 
     uint128 public constant SELL_SOFT_LIMIT = TOTAL_SUPPLY * 10 / 100; // soft limit is 10%
@@ -39,21 +39,21 @@ contract TGCSale is DSStop, DSMath, DSExec {
 
     uint128 sold;
 
-    function TGCSale(uint startTime_, address destFoundation_) {
+    function KeyTokenSale(uint startTime_, address destFoundation_) {
 
-        tgc = new DSToken("TGC");
+        key = new DSToken("KEY");
 
         destFoundation = destFoundation_;
 
         startTime = startTime_;
         endTime = startTime + 14 days;
 
-        tgc.mint(TOTAL_SUPPLY);
+        key.mint(TOTAL_SUPPLY);
 
-        tgc.transfer(destFoundation, FUTURE_DISTRIBUTE_LIMIT);
+        key.transfer(destFoundation, FUTURE_DISTRIBUTE_LIMIT);
 
         //disable transfer
-        tgc.stop();
+        key.stop();
     }
 
     // overrideable for easy testing
@@ -104,9 +104,9 @@ contract TGCSale is DSStop, DSMath, DSExec {
 
         userBuys[msg.sender] = add(userBuys[msg.sender], toFund);
 
-        tgc.start();
-        tgc.transfer(msg.sender, requested);
-        tgc.stop();
+        key.start();
+        key.transfer(msg.sender, requested);
+        key.stop();
 
         exec(destFoundation, toFund); // send the ETH to multisig
 
@@ -129,14 +129,14 @@ contract TGCSale is DSStop, DSMath, DSExec {
         uint256 unsold = sub(SELL_HARD_LIMIT, sold);
 
         // enable transfer
-        tgc.start();
+        key.start();
 
         if(unsold > 0){
-            tgc.transfer(destFoundation, unsold);
+            key.transfer(destFoundation, unsold);
         }
 
         // owner -> destFoundation
-        tgc.setOwner(destFoundation);
+        key.setOwner(destFoundation);
     }
 
 

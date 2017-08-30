@@ -6,16 +6,16 @@ import "ds-test/test.sol";
 import "ds-exec/exec.sol";
 import "ds-token/token.sol";
 
-import "./TGCSale.sol";
+import "./KeyTokenSale.sol";
 
-contract TGCSaleUser is DSExec {
+contract KeyTokenSaleUser is DSExec {
 
-    TGCSale sale;
-    DSToken tgc;
+    KeyTokenSale sale;
+    DSToken key;
 
-    function TGCSaleUser(TGCSale sale_) {
+    function KeyTokenSaleUser(KeyTokenSale sale_) {
         sale = sale_;
-        tgc = sale.tgc();
+        key = sale.key();
     }
 
     function() payable {}
@@ -25,22 +25,22 @@ contract TGCSaleUser is DSExec {
     }
 
     function doTransfer(address to, uint256 amount) returns (bool){
-        return tgc.transfer(to, amount);
+        return key.transfer(to, amount);
     }
 }
 
-contract TGCOwner {
+contract KeyTokenOwner {
 
-    DSToken tgc;
+    DSToken key;
 
-    function TGCOwner() {}
+    function KeyTokenOwner() {}
 
-    function setTGC(DSToken tgc_) {
-        tgc = tgc_;
+    function setKey(DSToken key_) {
+        key = key_;
     }
 
     function doStop() {
-        tgc.stop();
+        key.stop();
     }
 
 
@@ -48,10 +48,10 @@ contract TGCOwner {
     function() payable {}
 }
 
-contract TestableTGCSale is TGCSale {
+contract TestableKeyTokenSale is KeyTokenSale {
 
-    function TestableTGCSale(uint startTime, address destFoundation)
-    TGCSale(startTime, destFoundation) {
+    function TestableKeyTokenSale(uint startTime, address destFoundation)
+    KeyTokenSale(startTime, destFoundation) {
         localTime = now;
     }
 
@@ -66,38 +66,38 @@ contract TestableTGCSale is TGCSale {
     }
 }
 
-contract TGCSaleTest is DSTest, DSExec {
-    TestableTGCSale sale;
-    DSToken tgc;
-    TGCOwner tgcFoundation;
+contract KeyTokenSaleTest is DSTest, DSExec {
+    TestableKeyTokenSale sale;
+    DSToken key;
+    KeyTokenOwner keyFoundation;
 
-    TGCSaleUser user1;
-    TGCSaleUser user2;
+    KeyTokenSaleUser user1;
+    KeyTokenSaleUser user2;
 
 
     function setUp() {
-        tgcFoundation = new TGCOwner();
-        sale = new TestableTGCSale(now, tgcFoundation);
-        tgc = sale.tgc();
+        keyFoundation = new KeyTokenOwner();
+        sale = new TestableKeyTokenSale(now, keyFoundation);
+        key = sale.key();
 
-        tgcFoundation.setTGC(tgc);
+        keyFoundation.setKey(key);
 
-        user1 = new TGCSaleUser(sale);
+        user1 = new KeyTokenSaleUser(sale);
         exec(user1, 600 ether);
 
-        user2 = new TGCSaleUser(sale);
+        user2 = new KeyTokenSaleUser(sale);
         exec(user2, 600 ether);
 
     }
 
 
 
-    function testTGCSaleToken() {
-        assertEq(tgc.balanceOf(sale), (10 ** 11)*(10 ** 18) * 20 / 100 );
+    function testKeySaleToken() {
+        assertEq(key.balanceOf(sale), (10 ** 11)*(10 ** 18) * 20 / 100 );
     }
 
     function testFoundationToken() {
-        assertEq(tgc.balanceOf(tgcFoundation), (10 ** 11)*(10 ** 18) * 80 / 100 );
+        assertEq(key.balanceOf(keyFoundation), (10 ** 11)*(10 ** 18) * 80 / 100 );
     }
 
 
@@ -105,12 +105,12 @@ contract TGCSaleTest is DSTest, DSExec {
         sale.addTime(1 days);
 
         user1.doBuy(19 ether);
-        assertEq(tgc.balanceOf(user1), 200000 * 19 ether);
-        assertEq(tgcFoundation.balance, 19 ether);
+        assertEq(key.balanceOf(user1), 200000 * 19 ether);
+        assertEq(keyFoundation.balance, 19 ether);
 
         exec(sale, 11 ether);
-        assertEq(tgc.balanceOf(this), 200000 * 11 ether);
-        assertEq(tgcFoundation.balance, 30 ether);
+        assertEq(key.balanceOf(this), 200000 * 11 ether);
+        assertEq(keyFoundation.balance, 30 ether);
     }
 
     function testClaimTokens() {
@@ -120,13 +120,13 @@ contract TGCSaleTest is DSTest, DSExec {
 
     function testBuyManyTimes() {
         exec(sale, 100 ether);
-        assertEq(tgc.balanceOf(this), 200000 * 100 ether);
+        assertEq(key.balanceOf(this), 200000 * 100 ether);
 
         exec(sale, 200 ether);
-        assertEq(tgc.balanceOf(this), 200000 * 300 ether);
+        assertEq(key.balanceOf(this), 200000 * 300 ether);
 
         exec(sale, 200 ether);
-        assertEq(tgc.balanceOf(this), 200000 * 500 ether);
+        assertEq(key.balanceOf(this), 200000 * 500 ether);
     }
 
 
@@ -156,15 +156,15 @@ contract TGCSaleTest is DSTest, DSExec {
         sale.addTime(14 days);
 
 
-        assertEq(tgc.balanceOf(sale), 30000 * 200000 * (10**18) );
-        assertEq(tgc.balanceOf(tgcFoundation), ( (10 ** 11) * 80 / 100 ) * (10**18) );
+        assertEq(key.balanceOf(sale), 30000 * 200000 * (10**18) );
+        assertEq(key.balanceOf(keyFoundation), ( (10 ** 11) * 80 / 100 ) * (10**18) );
 
         sale.finalize();
 
-        assertEq(tgc.balanceOf(sale), 0 );
-        assertEq(tgc.balanceOf(tgcFoundation), ( (10 ** 11) * 80 / 100 + 30000 * 200000) * (10**18) );
+        assertEq(key.balanceOf(sale), 0 );
+        assertEq(key.balanceOf(keyFoundation), ( (10 ** 11) * 80 / 100 + 30000 * 200000) * (10**18) );
 
-        assertEq(tgcFoundation.balance, 70000 ether);
+        assertEq(keyFoundation.balance, 70000 ether);
 
     }
 
@@ -173,20 +173,20 @@ contract TGCSaleTest is DSTest, DSExec {
         sale.addTime(14 days);
 
         sale.finalize();
-        tgcFoundation.doStop();
+        keyFoundation.doStop();
     }
 
     function testTransferAfterFinalize() {
         user1.doBuy(1 ether);
-        assertEq(tgc.balanceOf(user1), 200000 * 1 ether);
+        assertEq(key.balanceOf(user1), 200000 * 1 ether);
 
         sale.addTime(14 days);
         sale.finalize();
 
         assert(user1.doTransfer(user2, 200000 * 1 ether));
 
-        assertEq(tgc.balanceOf(user1), 0);
-        assertEq(tgc.balanceOf(user2), 200000 * 1 ether);
+        assertEq(key.balanceOf(user1), 0);
+        assertEq(key.balanceOf(user2), 200000 * 1 ether);
 
     }
 
@@ -197,7 +197,7 @@ contract TGCSaleTest is DSTest, DSExec {
         // one 100 ether left, 200 ether will return
         user1.doBuy(300 ether);
 
-        assertEq(tgc.balanceOf(user1), 200000 * 100 ether);
+        assertEq(key.balanceOf(user1), 200000 * 100 ether);
         assertEq(user1.balance, 500 ether);
 
         assertEq(sale.endTime(), now);
@@ -215,7 +215,7 @@ contract TGCSaleTest is DSTest, DSExec {
 
         // hit soft limit
         exec(sale, 50000 ether);
-        assertEq(tgc.balanceOf(this), 200000 * 50000 ether);
+        assertEq(key.balanceOf(this), 200000 * 50000 ether);
 
         // 24 hours left for sell
         assertEq(sale.endTime(), now + 24 hours);
@@ -247,7 +247,7 @@ contract TGCSaleTest is DSTest, DSExec {
 
 
     function testFailStartTooEarly() {
-        sale = new TestableTGCSale(now + 1 days, tgcFoundation);
+        sale = new TestableKeyTokenSale(now + 1 days, keyFoundation);
         exec(sale, 10 ether);
     }
 
