@@ -70,6 +70,10 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
         return size > 0;
     }
 
+    function canBuy(uint total) returns (bool) {
+        return total <= USER_BUY_LIMIT;
+    }
+
     function() payable stoppable note {
 
         //require(!isContract(msg.sender));
@@ -78,45 +82,45 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
 
         assert(time() >= startTime && time() < endTime);
 
-        // owner is for test
-        assert(msg.sender == owner || add(userBuys[msg.sender], msg.value) <= USER_BUY_LIMIT);
-
-        assert(sold < SELL_HARD_LIMIT);
-
-        var rate = PUBLIC_SALE_PRICE;
         var toFund = cast(msg.value);
 
-        var requested = wmul(toFund, rate);
+        var requested = wmul(toFund, PUBLIC_SALE_PRICE);
 
+        // selling SELL_HARD_LIMIT tokens ends the sale
         if( add(sold, requested) >= SELL_HARD_LIMIT) {
             requested = SELL_HARD_LIMIT - sold;
-            toFund = wdiv(requested, rate);
+            toFund = wdiv(requested, PUBLIC_SALE_PRICE);
 
             endTime = time();
         }
 
+        // User cannot buy more than USER_BUY_LIMIT
+        var totalUserBuy = add(userBuys[msg.sender], toFund);
+        assert(canBuy(totalUserBuy));
+        userBuys[msg.sender] = totalUserBuy;
+
         sold = hadd(sold, requested);
 
+        // Soft limit triggers the sale to close in 24 hours
         if( !moreThanSoftLimit && sold >= SELL_SOFT_LIMIT ) {
             moreThanSoftLimit = true;
             endTime = time() + 24 hours; // last 24 hours after soft limit,
         }
 
-        userBuys[msg.sender] = add(userBuys[msg.sender], toFund);
-
         key.start();
         key.transfer(msg.sender, requested);
         key.stop();
 
-        exec(destFoundation, toFund); // send the ETH to multisig
+        exec(destFoundation, toFund); // send collected ETH to multisig
 
+        // return excess ETH to the user
         uint toReturn = sub(msg.value, toFund);
         if(toReturn > 0) {
             exec(msg.sender, toReturn);
         }
     }
 
-    function setStartTime(uint startTime_) auth note{
+    function setStartTime(uint startTime_) auth note {
         require(time() <= startTime && time() <= startTime_);
 
         startTime = startTime_;
@@ -126,14 +130,11 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
     function finalize() auth note {
         require(time() >= endTime);
 
-        uint256 unsold = sub(SELL_HARD_LIMIT, sold);
-
         // enable transfer
         key.start();
 
-        if(unsold > 0){
-            key.transfer(destFoundation, unsold);
-        }
+        // transfer undistributed KEY
+        key.transfer(destFoundation, key.balanceOf(this));
 
         // owner -> destFoundation
         key.setOwner(destFoundation);

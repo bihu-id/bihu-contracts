@@ -64,6 +64,10 @@ contract TestableKeyTokenSale is KeyTokenSale {
     function addTime(uint extra) {
         localTime += extra;
     }
+
+    function canBuy(uint total) returns (bool) {
+        return msg.sender == owner ? true : total < USER_BUY_LIMIT;
+    }
 }
 
 contract KeyTokenSaleTest is DSTest, DSExec {
