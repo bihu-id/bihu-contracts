@@ -17,7 +17,6 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
 
     uint128 public constant TOTAL_SUPPLY = 10 ** 11 * 1 ether;  // 100 billion KEY in total
 
-
     uint128 public constant SELL_SOFT_LIMIT = TOTAL_SUPPLY * 12 / 100; // soft limit is 12% , 60000 eth
     uint128 public constant SELL_HARD_LIMIT = TOTAL_SUPPLY * 16 / 100; // hard limit is 16% , 80000 eth
 
@@ -26,18 +25,17 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
     uint128 public constant USER_BUY_LIMIT = 500 ether; // 500 ether limit
     uint128 public constant MAX_GAS_PRICE = 50000000000;  // 50GWei
 
-
     uint public startTime;
     uint public endTime;
 
     bool public moreThanSoftLimit;
-
 
     mapping (address => uint)  public  userBuys; // limit to 500 eth
 
     address public destFoundation; //multisig account , 4-of-6
 
     uint128 sold;
+    uint128 public constant soldByChannels = 40000 * 200000 ether; // 2 ICO websites, each 20000 eth
 
     function KeyTokenSale(uint startTime_, address destFoundation_) {
 
@@ -48,9 +46,11 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
         startTime = startTime_;
         endTime = startTime + 14 days;
 
+        sold = soldByChannels; // sold by 3rd party ICO websites;
         key.mint(TOTAL_SUPPLY);
 
         key.transfer(destFoundation, FUTURE_DISTRIBUTE_LIMIT);
+        key.transfer(destFoundation, soldByChannels);
 
         //disable transfer
         key.stop();
