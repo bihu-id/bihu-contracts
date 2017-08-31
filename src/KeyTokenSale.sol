@@ -151,4 +151,15 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
         token.transfer(dst, wad);
     }
 
+    function summary()constant returns(
+        uint128 _sold,
+        uint _startTime,
+        uint _endTime)
+        {
+        _sold = sold;
+        _startTime = startTime;
+        _endTime = endTime;
+        return;
+    }
+
 }
