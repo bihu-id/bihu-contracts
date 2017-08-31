@@ -34,7 +34,7 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
 
     address public destFoundation; //multisig account , 4-of-6
 
-    uint128 sold;
+    uint128 public sold;
     uint128 public constant soldByChannels = 40000 * 200000 ether; // 2 ICO websites, each 20000 eth
 
     function KeyTokenSale(uint startTime_, address destFoundation_) {
