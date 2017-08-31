@@ -43,8 +43,6 @@ contract KeyTokenOwner {
         key.stop();
     }
 
-
-
     function() payable {}
 }
 
@@ -63,6 +61,10 @@ contract TestableKeyTokenSale is KeyTokenSale {
 
     function addTime(uint extra) {
         localTime += extra;
+    }
+
+    function canBuy(uint total) returns (bool) {
+        return msg.sender == owner ? true : total < USER_BUY_LIMIT;
     }
 }
 
@@ -114,7 +116,11 @@ contract KeyTokenSaleTest is DSTest, DSExec {
     }
 
     function testClaimTokens() {
-        //sale.claimTokens(address(0x0));
+        DSToken test = new DSToken("TST");
+        test.mint(1 ether);
+        test.push(sale, 1 ether);
+        assertEq(test.balanceOf(this), 0);
+        sale.transferTokens(this, 1 ether, test);
     }
 
 
