@@ -76,7 +76,7 @@ contract KeyTokenSale is DSStop, DSMath, DSExec {
 
     function() payable stoppable note {
 
-        require(!isContract(msg.sender));
+//        require(!isContract(msg.sender));
         require(msg.value >= 0.01 ether);
         require(tx.gasprice <= MAX_GAS_PRICE);
 
