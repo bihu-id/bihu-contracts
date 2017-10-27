@@ -10,6 +10,10 @@ contract WarmWallet is DSAuth{
     address public hotWallet;
     address public coldWallet;
 
+
+// address
+// config lockTime and amount
+
     function WarmWallet(DSToken _key, address _hot, address _cold){
         require(address(_key) != 0x0 );
 
