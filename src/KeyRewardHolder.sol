@@ -1,9 +1,9 @@
 pragma solidity ^0.4.0;
 
-
+import "ds-math/math.sol";
 import "ds-token/token.sol";
 
-contract KeyRewardHolder is DSStop{
+contract KeyRewardHolder is DSStop , DSMath{
 
     DSToken public key;
     uint256 public rewardStartTime;
@@ -20,14 +20,13 @@ contract KeyRewardHolder is DSStop{
     }
 
     // @notice call this method to extract the tokens
-
     function collectToken() auth{
 
         require(getTime() > rewardStartTime);
 
         uint256 balance = key.balanceOf(address(this));
 
-        uint256 total = collectedTokens.add(balance);
+        uint256 total = add(collectedTokens, balance);
 
         uint yearCount = yearFor(getTime());
 
@@ -40,17 +39,17 @@ contract KeyRewardHolder is DSStop{
         totalRewardThisYear = remainingTokens * yearlyRewardRate;
 
         // the reward will be increasing linearly in one year.
-        uint256 canExtractThisYear = totalRewardThisYear.mul(getTime().sub(timeStampForYear(yearCount))).div(365 days);
+        uint256 canExtractThisYear = totalRewardThisYear * (getTime() % 365 days) / (365 days);
         uint256 canExtract = canExtractThisYear + (total - remainingTokens);
 
-        canExtract = canExtract.sub(collectedTokens);
+        canExtract = sub(canExtract, collectedTokens);
 
         if(canExtract > balance) {
             canExtract = balance;
         }
 
         assert(key.transfer(owner, canExtract));
-        collectedTokens = collectedTokens.add(canExtract);
+        collectedTokens = add(collectedTokens, canExtract);
 
         TokensWithdrawn(owner, canExtract);
     }
@@ -59,26 +58,16 @@ contract KeyRewardHolder is DSStop{
     function yearFor(uint timestamp) constant returns(uint) {
         return timestamp < rewardStartTime
         ? 0
-        : sub(timestamp, rewardStartTime) / 365 days;
+        : sub(timestamp, rewardStartTime) / (365 days);
     }
-
-    function timeStampForYear(uint n) constant returns(uint256) {
-        require(n >= 0);
-
-        return rewardStartTime.add(n.mul(365 days));
-    }
-
 
     function getTime() constant returns (uint256) {
         return now;
     }
 
-
     function percent(uint256 p) internal returns (uint256) {
-        return p.mul(10**16);
+        return mul(p, 10**16);
     }
-
-
 
     // @notice This method can be used by the controller to extract mistakenly
     //  sent tokens to this contract.
