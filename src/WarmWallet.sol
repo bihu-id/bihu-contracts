@@ -7,7 +7,6 @@ import "ds-auth/auth.sol";
 contract WarmWalletEvents {
     event LogSetWithdrawer (address indexed withdrawer);
     event LogSetWithdrawLimit (address indexed sender, uint value);
-//    event LogSetOwner     (address indexed owner);
 }
 
 contract WarmWallet is DSStop, WarmWalletEvents{
