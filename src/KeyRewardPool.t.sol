@@ -91,14 +91,14 @@ contract KeyRewardPoolTest is DSTest, DSMath{
 
         rewardPool.addTime(1 days);
         poolOwner.collectToken();
-        assertEq(key.balanceOf(poolOwner), div(5 ether, 365));
+        assertEq(key.balanceOf(poolOwner), div(10 ether, 365));
     }
 
     function testCollectToken300Day() {
 
         rewardPool.addTime(300 days);
         poolOwner.collectToken();
-        assertEq(key.balanceOf(poolOwner), div(300 * 5 ether , 365));
+        assertEq(key.balanceOf(poolOwner), div(300 * 10 ether , 365));
     }
 
     function testCollectToken400Day() {
@@ -109,8 +109,8 @@ contract KeyRewardPoolTest is DSTest, DSMath{
         rewardPool.addTime(35 days);
         poolOwner.collectToken();
 
-        uint256 reward = 5 ether;
-        reward = reward + div( 35 * 95 * 5 ether, 365 * 100) ;
+        uint256 reward = 10 ether;
+        reward = reward + div( 35 * 90 * 10 ether, 365 * 100) ;
 
         assertEq(key.balanceOf(poolOwner), reward);
     }
@@ -119,7 +119,7 @@ contract KeyRewardPoolTest is DSTest, DSMath{
 
         rewardPool.addTime(365 days);
         poolOwner.collectToken();
-        assertEq(key.balanceOf(poolOwner), 5 ether);
+        assertEq(key.balanceOf(poolOwner), 10 ether);
     }
 
     function testCollectToken2Year() {
@@ -130,7 +130,7 @@ contract KeyRewardPoolTest is DSTest, DSMath{
         rewardPool.addTime(1 years);
         poolOwner.collectToken();
 
-        assertEq(key.balanceOf(poolOwner), 5 ether + (5 * 95 ether)/100);
+        assertEq(key.balanceOf(poolOwner), 10 ether + (10 * 90 ether)/100);
     }
 
     function testFailTransferTokens() {

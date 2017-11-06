@@ -70,5 +70,16 @@ contract WarmWallet is DSStop, WarmWalletEvents{
     }
 
 
+    // @notice This method can be used by the controller to extract mistakenly
+    //  sent tokens to this contract.
+    // @param dst The address that will be receiving the tokens
+    // @param wad The amount of tokens to transfer
+    // @param _token The address of the token contract that you want to recover
+    function transferTokens(address dst, uint wad, address _token) onlyWithdrawer {
+        ERC20 token = ERC20(_token);
+        token.transfer(dst, wad);
+    }
+
+
 
 }

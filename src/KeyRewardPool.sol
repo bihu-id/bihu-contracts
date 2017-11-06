@@ -8,7 +8,7 @@ contract KeyRewardPool is DSStop , DSMath{
     DSToken public key;
     uint256 public rewardStartTime;
 
-    uint256 constant public yearlyRewardRate = 5; // 5% of remaining tokens
+    uint256 constant public yearlyRewardRate = 10; // 10% of remaining tokens
     uint256 public totalRewardThisYear;
 
     uint256 public collectedTokens;
@@ -32,14 +32,14 @@ contract KeyRewardPool is DSStop , DSMath{
 
         uint256 remainingTokens = total;
         for(uint i = 0; i < yearCount; i++) {
-
-            remainingTokens = remainingTokens * (100 - yearlyRewardRate) / 100 ;
+            remainingTokens =  div( mul(remainingTokens, 100 - yearlyRewardRate), 100);
         }
-        // 5% of remaining tokens
-        totalRewardThisYear = remainingTokens * yearlyRewardRate / 100 ;
+        //
+        totalRewardThisYear =  div( mul(remainingTokens, yearlyRewardRate), 100);
 
         // the reward will be increasing linearly in one year.
-        uint256 canExtractThisYear = totalRewardThisYear * ( (time() - rewardStartTime)  % 365 days) / (365 days);
+        uint256 canExtractThisYear = div( mul(totalRewardThisYear, (time() - rewardStartTime)  % 365 days), 365 days);
+
         uint256 canExtract = canExtractThisYear + (total - remainingTokens);
 
         canExtract = sub(canExtract, collectedTokens);
