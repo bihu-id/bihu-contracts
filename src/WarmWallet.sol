@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.8;
 
 import "ds-token/token.sol";
 import "ds-auth/auth.sol";
@@ -21,17 +21,25 @@ contract WarmWallet is DSStop, WarmWalletEvents{
     uint256 public lastWithdrawTime;
 
     modifier onlyWithdrawer {
-        assert(msg.sender == withdrawer);
+        require(msg.sender == withdrawer);
         _;
     }
 
     // overrideable for easy testing
-    function time() constant returns (uint) {
+    function time() public pure returns (uint) {
         return now;
     }
 
     function WarmWallet(DSToken _key, address _hot, address _cold, address _withdrawer, uint _limit){
-        require(address(_key) != 0x0 );
+        require(_key != address(0) );
+        require(_hot != address(0) );
+        require(_cold != address(0) );
+        require(_withdrawer != address(0) );
+        require(_limit > 0);
+
+        require(_key != _hot);
+        require(_key != _cold);
+        require(_key != _withdrawer);
 
         key = _key;
         hotWallet = _hot;
@@ -43,15 +51,16 @@ contract WarmWallet is DSStop, WarmWalletEvents{
 
     function forwardToHotWallet(uint _amount) stoppable onlyWithdrawer {
         require(_amount > 0);
-        require(time() > (lastWithdrawTime + 24 hours));
+        uint _time = time();
+        require(_time > (lastWithdrawTime + 24 hours));
 
         uint amount = _amount;
-        if ( amount > withdrawLimit) {
+        if (amount > withdrawLimit) {
             amount = withdrawLimit;
         }
 
         key.transfer(hotWallet, amount);
-        lastWithdrawTime = time();
+        lastWithdrawTime = _time;
     }
 
     function restoreToColdWallet(uint _amount) onlyWithdrawer {
@@ -76,8 +85,11 @@ contract WarmWallet is DSStop, WarmWalletEvents{
     // @param wad The amount of tokens to transfer
     // @param _token The address of the token contract that you want to recover
     function transferTokens(address dst, uint wad, address _token) onlyWithdrawer {
-        ERC20 token = ERC20(_token);
-        token.transfer(dst, wad);
+        require(_token != dst);
+        if (wad > 0) {
+            ERC20 token = ERC20(_token);
+            token.transfer(dst, wad);
+        }
     }
 
 
