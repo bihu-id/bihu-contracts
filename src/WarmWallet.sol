@@ -76,6 +76,9 @@ contract WarmWallet is DSStop, WarmWalletEvents{
     // @param wad The amount of tokens to transfer
     // @param _token The address of the token contract that you want to recover
     function transferTokens(address dst, uint wad, address _token) onlyWithdrawer {
+
+        require( _token != address(key));
+    
         ERC20 token = ERC20(_token);
         token.transfer(dst, wad);
     }
