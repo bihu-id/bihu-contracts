@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.8;
 
 import "ds-math/math.sol";
 import "ds-token/token.sol";
@@ -6,14 +6,16 @@ import "ds-token/token.sol";
 contract KeyRewardPool is DSStop , DSMath{
 
     DSToken public key;
-    uint256 public rewardStartTime;
+    uint public rewardStartTime;
 
-    uint256 constant public yearlyRewardRate = 10; // 10% of remaining tokens
-    uint256 public totalRewardThisYear;
+    uint constant public yearlyRewardPercentage = 10; // 10% of remaining tokens
+    uint public totalRewardThisYear;
 
-    uint256 public collectedTokens;
+    uint public collectedTokens;
 
-    function KeyRewardPool(uint256 _rewardStartTime, address _key){
+    event TokensWithdrawn(address indexed _holder, uint _amount);
+
+    function KeyRewardPool(uint _rewardStartTime, address _key){
         rewardStartTime = _rewardStartTime;
 
         key = DSToken(_key);
@@ -21,26 +23,27 @@ contract KeyRewardPool is DSStop , DSMath{
 
     // @notice call this method to extract the tokens
     function collectToken() auth{
+        uint _time = time();
+        var _key = key;  // create a in memory variable for storage variable will save gas usage.
 
-        require(time() > rewardStartTime);
+        require(_time > rewardStartTime);
 
-        uint256 balance = key.balanceOf(address(this));
+        uint balance = _key.balanceOf(address(this));
+        uint remainingTokens = total;
 
-        uint256 total = add(collectedTokens, balance);
+        uint total = add(collectedTokens, balance);
+        uint yearCount = yearFor(_time);
 
-        uint yearCount = yearFor(time());
-
-        uint256 remainingTokens = total;
         for(uint i = 0; i < yearCount; i++) {
-            remainingTokens =  div( mul(remainingTokens, 100 - yearlyRewardRate), 100);
+            remainingTokens =  div( mul(remainingTokens, 100 - yearlyRewardPercentage), 100);
         }
         //
-        totalRewardThisYear =  div( mul(remainingTokens, yearlyRewardRate), 100);
+        totalRewardThisYear =  div( mul(remainingTokens, yearlyRewardPercentage), 100);
 
         // the reward will be increasing linearly in one year.
-        uint256 canExtractThisYear = div( mul(totalRewardThisYear, (time() - rewardStartTime)  % 365 days), 365 days);
+        uint canExtractThisYear = div( mul(totalRewardThisYear, (_time - rewardStartTime)  % 365 days), 365 days);
 
-        uint256 canExtract = canExtractThisYear + (total - remainingTokens);
+        uint canExtract = canExtractThisYear + total - remainingTokens;
 
         canExtract = sub(canExtract, collectedTokens);
 
@@ -48,20 +51,21 @@ contract KeyRewardPool is DSStop , DSMath{
             canExtract = balance;
         }
 
-        assert(key.transfer(owner, canExtract));
+        
         collectedTokens = add(collectedTokens, canExtract);
 
+        assert(_key.transfer(owner, canExtract)); // Fix potential re-entry bug.
         TokensWithdrawn(owner, canExtract);
     }
 
 
-    function yearFor(uint timestamp) constant returns(uint) {
+    function yearFor(uint timestamp) internal view returns(uint) {
         return timestamp < rewardStartTime
-        ? 0
-        : sub(timestamp, rewardStartTime) / (365 days);
+            ? 0
+            : sub(timestamp, rewardStartTime) / (365 days);
     }
 
-    function time() constant returns (uint256) {
+    function time() internal view returns (uint) {
         return now;
     }
 
@@ -71,12 +75,12 @@ contract KeyRewardPool is DSStop , DSMath{
     // @param wad The amount of tokens to transfer
     // @param _token The address of the token contract that you want to recover
     function transferTokens(address dst, uint wad, address _token) public auth note {
-
         require( _token != address(key));
-
-        ERC20 token = ERC20(_token);
-        token.transfer(dst, wad);
+        if (wad > 0) {
+            ERC20 token = ERC20(_token);
+            token.transfer(dst, wad);
+        }
     }
 
-    event TokensWithdrawn(address indexed _holder, uint256 _amount);
+    
 }
