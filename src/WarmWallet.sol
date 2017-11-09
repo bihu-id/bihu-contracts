@@ -26,7 +26,7 @@ contract WarmWallet is DSStop, WarmWalletEvents{
     }
 
     // overrideable for easy testing
-    function time() public pure returns (uint) {
+    function time() public returns (uint) {
         return now;
     }
 

@@ -15,9 +15,12 @@ contract Withdrawer {
     WarmWallet warmWallet;
     DSToken key;
 
-    function Withdrawer(address _warmWallet, address _key) {
-        warmWallet = WarmWallet(_warmWallet);
+    function Withdrawer(address _key) {
         key = DSToken(_key);
+    }
+
+    function setWarmWallet(address _warmWallet) {
+        warmWallet = WarmWallet(_warmWallet);
     }
 
     function forwardToHotWallet(uint _amount) {
@@ -46,12 +49,14 @@ contract WarmWalletTest is DSTest {
 
         key = keyReborn.key();
 
-        warmWallet = new WarmWallet(key, hotWallet, coldWallet, 0x0, 200 ether);
+
+        withdrawer = new Withdrawer(key);
+
+        warmWallet = new WarmWallet(key, hotWallet, coldWallet, withdrawer, 200 ether);
+
+        withdrawer.setWarmWallet(warmWallet);
 
         key.transfer(warmWallet, 1000 ether);
-
-        withdrawer = new Withdrawer(warmWallet, key);
-        warmWallet.setWithdrawer(withdrawer);
 
     }
 

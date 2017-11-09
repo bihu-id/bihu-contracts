@@ -29,9 +29,10 @@ contract KeyRewardPool is DSStop , DSMath{
         require(_time > rewardStartTime);
 
         uint balance = _key.balanceOf(address(this));
+        uint total = add(collectedTokens, balance);
+
         uint remainingTokens = total;
 
-        uint total = add(collectedTokens, balance);
         uint yearCount = yearFor(_time);
 
         for(uint i = 0; i < yearCount; i++) {
@@ -59,13 +60,14 @@ contract KeyRewardPool is DSStop , DSMath{
     }
 
 
-    function yearFor(uint timestamp) internal view returns(uint) {
+    function yearFor(uint timestamp) constant returns(uint) {
         return timestamp < rewardStartTime
             ? 0
             : sub(timestamp, rewardStartTime) / (365 days);
     }
 
-    function time() internal view returns (uint) {
+    // overrideable for easy testing
+    function time() constant returns (uint) {
         return now;
     }
 
