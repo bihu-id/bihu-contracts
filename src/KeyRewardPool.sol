@@ -10,10 +10,16 @@ contract KeyRewardPool is DSStop , DSMath{
 
     uint constant public yearlyRewardPercentage = 10; // 10% of remaining tokens
     uint public totalRewardThisYear;
-
     uint public collectedTokens;
+    address public withdrawer;
 
     event TokensWithdrawn(address indexed _holder, uint _amount);
+    event LogSetWithdrawer(address indexed _withdrawer);
+
+    modifier onlyWithdrawer {
+        require(msg.sender == withdrawer);
+        _;
+    }
 
     function KeyRewardPool(uint _rewardStartTime, address _key){
         rewardStartTime = _rewardStartTime;
@@ -22,7 +28,7 @@ contract KeyRewardPool is DSStop , DSMath{
     }
 
     // @notice call this method to extract the tokens
-    function collectToken() auth{
+    function collectToken() stoppable onlyWithdrawer{
         uint _time = time();
         var _key = key;  // create a in memory variable for storage variable will save gas usage.
 
@@ -55,8 +61,8 @@ contract KeyRewardPool is DSStop , DSMath{
         
         collectedTokens = add(collectedTokens, canExtract);
 
-        assert(_key.transfer(owner, canExtract)); // Fix potential re-entry bug.
-        TokensWithdrawn(owner, canExtract);
+        assert(_key.transfer(withdrawer, canExtract)); // Fix potential re-entry bug.
+        TokensWithdrawn(withdrawer, canExtract);
     }
 
 
@@ -69,6 +75,11 @@ contract KeyRewardPool is DSStop , DSMath{
     // overrideable for easy testing
     function time() constant returns (uint) {
         return now;
+    }
+
+    function setWithdrawer(address _withdrawer) auth {
+        withdrawer = _withdrawer;
+        LogSetWithdrawer(_withdrawer);
     }
 
     // @notice This method can be used by the controller to extract mistakenly

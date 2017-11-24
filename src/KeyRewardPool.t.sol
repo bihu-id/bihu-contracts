@@ -7,12 +7,27 @@ import "./KeyRewardPool.sol";
 import "./KeyTokenReborn.sol";
 
 
-
 contract KeyRewardPoolOwner {
 
     TestableKeyRewardPool pool;
 
     function KeyRewardPoolOwner(TestableKeyRewardPool _pool) {
+        pool = _pool;
+    }
+
+    function stopRewardPool() {
+        pool.stop();
+    }
+
+    function startRewardPool() {
+        pool.start();
+    }
+}
+
+contract KeyRewardPoolWithdrawer {
+    TestableKeyRewardPool pool;
+
+    function KeyRewardPoolWithdrawer(TestableKeyRewardPool _pool) {
         pool = _pool;
     }
 
@@ -24,8 +39,6 @@ contract KeyRewardPoolOwner {
         pool.transferTokens(dst, wad, _token );
     }
 }
-
-
 
 contract TestableKeyRewardPool is KeyRewardPool {
 
@@ -43,9 +56,7 @@ contract TestableKeyRewardPool is KeyRewardPool {
     function addTime(uint extra) {
         localTime += extra;
     }
-
 }
-
 
 contract KeyRewardPoolTest is DSTest, DSMath{
 
@@ -54,6 +65,7 @@ contract KeyRewardPoolTest is DSTest, DSMath{
     DSToken key;
 
     KeyRewardPoolOwner poolOwner;
+    KeyRewardPoolWithdrawer poolWithdrawer;
 
     function setUp() {
 
@@ -65,77 +77,85 @@ contract KeyRewardPoolTest is DSTest, DSMath{
         key.transfer(rewardPool, 100 ether);
 
         poolOwner = new KeyRewardPoolOwner(rewardPool);
+        poolWithdrawer = new KeyRewardPoolWithdrawer(rewardPool);
 
+        rewardPool.setWithdrawer(poolWithdrawer);
         rewardPool.setOwner(poolOwner);
 
     }
 
     function testKeyOwner() {
-
         assertEq(address(key.owner()), address(this));
     }
-//
+
     function testPoolTotalBalance() {
         assertEq(key.balanceOf(rewardPool), 100 ether);
         assertEq(key.balanceOf(poolOwner), 0 ether);
     }
 
     function testPoolOwner() {
-
         assertEq(address(rewardPool.owner()), poolOwner);
     }
 
-
+    function testPoolWithdrawer() {
+        assertEq(address(rewardPool.withdrawer()), poolWithdrawer);
+    }
 
     function testCollectTokenOneDay() {
+        rewardPool.addTime(1 days);
+        poolWithdrawer.collectToken();
+        assertEq(key.balanceOf(poolWithdrawer), div(10 ether, 365));
+    }
+
+    function testFailCollectTokenOneDay() {
+        poolOwner.stopRewardPool();
 
         rewardPool.addTime(1 days);
-        poolOwner.collectToken();
-        assertEq(key.balanceOf(poolOwner), div(10 ether, 365));
+        poolWithdrawer.collectToken();
+        assertEq(key.balanceOf(poolWithdrawer), div(10 ether, 365));
     }
 
     function testCollectToken300Day() {
-
         rewardPool.addTime(300 days);
-        poolOwner.collectToken();
-        assertEq(key.balanceOf(poolOwner), div(300 * 10 ether , 365));
+        poolWithdrawer.collectToken();
+        assertEq(key.balanceOf(poolWithdrawer), div(300 * 10 ether , 365));
     }
 
     function testCollectToken400Day() {
 
         rewardPool.addTime(1 years);
-        poolOwner.collectToken();
+        poolWithdrawer.collectToken();
 
         rewardPool.addTime(35 days);
-        poolOwner.collectToken();
+        poolWithdrawer.collectToken();
 
         uint256 reward = 10 ether;
         reward = reward + div( 35 * 90 * 10 ether, 365 * 100) ;
 
-        assertEq(key.balanceOf(poolOwner), reward);
+        assertEq(key.balanceOf(poolWithdrawer), reward);
     }
 
     function testCollectTokenOneYear() {
 
         rewardPool.addTime(365 days);
-        poolOwner.collectToken();
-        assertEq(key.balanceOf(poolOwner), 10 ether);
+        poolWithdrawer.collectToken();
+        assertEq(key.balanceOf(poolWithdrawer), 10 ether);
     }
 
     function testCollectToken2Year() {
 
         rewardPool.addTime(1 years);
-        poolOwner.collectToken();
+        poolWithdrawer.collectToken();
 
         rewardPool.addTime(1 years);
-        poolOwner.collectToken();
+        poolWithdrawer.collectToken();
 
-        assertEq(key.balanceOf(poolOwner), 10 ether + (10 * 90 ether)/100);
+        assertEq(key.balanceOf(poolWithdrawer), 10 ether + (10 * 90 ether)/100);
     }
 
     function testFailTransferTokens() {
 
-        poolOwner.transferTokens(this, 1 ether, key);
+        poolWithdrawer.transferTokens(this, 1 ether, key);
 
 
     }
