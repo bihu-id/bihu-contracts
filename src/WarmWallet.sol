@@ -47,6 +47,7 @@ contract WarmWallet is DSStop, WarmWalletEvents{
 
         withdrawer = _withdrawer;
         withdrawLimit = _limit;
+        lastWithdrawTime = 0;
     }
 
     function forwardToHotWallet(uint _amount) stoppable onlyWithdrawer {
