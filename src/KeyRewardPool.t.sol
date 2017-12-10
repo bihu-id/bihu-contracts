@@ -27,7 +27,11 @@ contract KeyRewardPoolOwner {
 contract KeyRewardPoolWithdrawer {
     TestableKeyRewardPool pool;
 
-    function KeyRewardPoolWithdrawer(TestableKeyRewardPool _pool) {
+    function KeyRewardPoolWithdrawer() {
+
+    }
+
+    function setKeyRewardPool(TestableKeyRewardPool _pool) {
         pool = _pool;
     }
 
@@ -42,8 +46,8 @@ contract KeyRewardPoolWithdrawer {
 
 contract TestableKeyRewardPool is KeyRewardPool {
 
-    function TestableKeyRewardPool(uint256 _rewardStartTime, address _key)
-    KeyRewardPool(_rewardStartTime, _key) {
+    function TestableKeyRewardPool(uint256 _rewardStartTime, address _key, address _withdrawer)
+    KeyRewardPool(_rewardStartTime, _key, _withdrawer) {
         localTime = now;
     }
 
@@ -72,14 +76,13 @@ contract KeyRewardPoolTest is DSTest, DSMath{
         keyReborn = new KeyTokenReborn(this);
         key = keyReborn.key();
 
-        rewardPool = new TestableKeyRewardPool(now, key);
+        poolWithdrawer = new KeyRewardPoolWithdrawer();
+        rewardPool = new TestableKeyRewardPool(now, key, poolWithdrawer);
+        poolWithdrawer.setKeyRewardPool(rewardPool);
 
         key.transfer(rewardPool, 100 ether);
 
         poolOwner = new KeyRewardPoolOwner(rewardPool);
-        poolWithdrawer = new KeyRewardPoolWithdrawer(rewardPool);
-
-        rewardPool.setWithdrawer(poolWithdrawer);
         rewardPool.setOwner(poolOwner);
 
     }

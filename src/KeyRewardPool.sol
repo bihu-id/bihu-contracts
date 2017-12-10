@@ -21,10 +21,14 @@ contract KeyRewardPool is DSStop , DSMath{
         _;
     }
 
-    function KeyRewardPool(uint _rewardStartTime, address _key){
-        rewardStartTime = _rewardStartTime;
+    function KeyRewardPool(uint _rewardStartTime, address _key, address _withdrawer){
+        require(_rewardStartTime != 0 );
+        require(_key != address(0) );
+        require(_withdrawer != address(0) );
 
+        rewardStartTime = _rewardStartTime;
         key = DSToken(_key);
+        withdrawer = _withdrawer;
     }
 
     // @notice call this method to extract the tokens
