@@ -60,8 +60,8 @@ contract WarmWallet is DSStop, WarmWalletEvents{
             amount = withdrawLimit;
         }
 
-        key.transfer(hotWallet, amount);
         lastWithdrawTime = _time;
+        key.transfer(hotWallet, amount);
     }
 
     function restoreToColdWallet(uint _amount) onlyWithdrawer {
@@ -70,11 +70,15 @@ contract WarmWallet is DSStop, WarmWalletEvents{
     }
 
     function setWithdrawer(address _withdrawer) auth {
+        require(_withdrawer != address(0) );
+
         withdrawer = _withdrawer;
         LogSetWithdrawer(_withdrawer);
     }
 
     function setWithdrawLimit(uint _limit) auth {
+        require(_limit > 0);
+
         withdrawLimit = _limit;
         LogSetWithdrawLimit(msg.sender, _limit);
     }

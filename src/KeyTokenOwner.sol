@@ -2,7 +2,7 @@ pragma solidity ^0.4.0;
 
 import "ds-token/token.sol";
 
-contract KeyTokenOwner is DSStop{
+contract KeyTokenOwner is DSAuth{
 
     DSToken public key;
 

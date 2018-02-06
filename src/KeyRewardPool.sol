@@ -25,6 +25,7 @@ contract KeyRewardPool is DSStop , DSMath{
         require(_rewardStartTime != 0 );
         require(_key != address(0) );
         require(_withdrawer != address(0) );
+        require(_rewardStartTime > now - 364 days);
 
         rewardStartTime = _rewardStartTime;
         key = DSToken(_key);
