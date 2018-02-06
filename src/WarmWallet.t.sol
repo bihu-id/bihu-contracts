@@ -1,10 +1,8 @@
-pragma solidity ^0.4.0;
+pragma solidity 0.4.18;
 
 
 import "ds-test/test.sol";
-
 import "ds-token/token.sol";
-
 import "./WarmWallet.sol";
 import "./KeyTokenReborn.sol";
 
