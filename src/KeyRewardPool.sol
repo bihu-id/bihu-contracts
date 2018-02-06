@@ -3,7 +3,7 @@ pragma solidity ^0.4.8;
 import "ds-math/math.sol";
 import "ds-token/token.sol";
 
-contract KeyRewardPool is DSStop , DSMath{
+contract KeyRewardPool is DSMath, DSNote{
 
     DSToken public key;
     uint public rewardStartTime;
@@ -12,12 +12,24 @@ contract KeyRewardPool is DSStop , DSMath{
     uint public totalRewardThisYear;
     uint public collectedTokens;
     address public withdrawer;
+    address public owner;
+    bool public paused;
 
     event TokensWithdrawn(address indexed _holder, uint _amount);
     event LogSetWithdrawer(address indexed _withdrawer);
+    event LogSetOwner(address indexed _owner);
 
     modifier onlyWithdrawer {
         require(msg.sender == withdrawer);
+        _;
+    }
+    modifier onlyOwner {
+        require(msg.sender == owner);
+        _;
+    }
+
+    modifier notPaused() {
+        require(!paused);
         _;
     }
 
@@ -30,10 +42,12 @@ contract KeyRewardPool is DSStop , DSMath{
         rewardStartTime = _rewardStartTime;
         key = DSToken(_key);
         withdrawer = _withdrawer;
+        owner = msg.sender;
+        paused = false;
     }
 
     // @notice call this method to extract the tokens
-    function collectToken() stoppable onlyWithdrawer{
+    function collectToken() notPaused onlyWithdrawer{
         uint _time = time();
         var _key = key;  // create a in memory variable for storage variable will save gas usage.
 
@@ -82,9 +96,23 @@ contract KeyRewardPool is DSStop , DSMath{
         return now;
     }
 
-    function setWithdrawer(address _withdrawer) auth {
+    function setWithdrawer(address _withdrawer) onlyOwner {
         withdrawer = _withdrawer;
         LogSetWithdrawer(_withdrawer);
+    }
+
+    function setOwner(address _owner) onlyOwner {
+        owner = _owner;
+        LogSetOwner(_owner);
+    }
+
+
+    function pauseCollectToken() onlyOwner {
+        paused = true;
+    }
+
+    function resumeCollectToken() onlyOwner {
+        paused = false;
     }
 
     // @notice This method can be used by the controller to extract mistakenly
@@ -92,7 +120,7 @@ contract KeyRewardPool is DSStop , DSMath{
     // @param dst The address that will be receiving the tokens
     // @param wad The amount of tokens to transfer
     // @param _token The address of the token contract that you want to recover
-    function transferTokens(address dst, uint wad, address _token) public auth note {
+    function transferTokens(address dst, uint wad, address _token) public onlyWithdrawer {
         require( _token != address(key));
         if (wad > 0) {
             ERC20 token = ERC20(_token);

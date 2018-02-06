@@ -7,9 +7,10 @@ import "ds-auth/auth.sol";
 contract WarmWalletEvents {
     event LogSetWithdrawer (address indexed withdrawer);
     event LogSetWithdrawLimit (address indexed sender, uint value);
+    event LogSetOwner(address indexed _owner);
 }
 
-contract WarmWallet is DSStop, WarmWalletEvents{
+contract WarmWallet is WarmWalletEvents{
 
     DSToken public key;
     address public hotWallet;
@@ -19,9 +20,21 @@ contract WarmWallet is DSStop, WarmWalletEvents{
     address public withdrawer;
     uint public withdrawLimit;
     uint256 public lastWithdrawTime;
+    address public owner;
+    bool public paused;
 
     modifier onlyWithdrawer {
         require(msg.sender == withdrawer);
+        _;
+    }
+
+    modifier onlyOwner {
+        require(msg.sender == owner);
+        _;
+    }
+
+    modifier notPaused() {
+        require(!paused);
         _;
     }
 
@@ -48,9 +61,12 @@ contract WarmWallet is DSStop, WarmWalletEvents{
         withdrawer = _withdrawer;
         withdrawLimit = _limit;
         lastWithdrawTime = 0;
+
+        owner = msg.sender;
+        paused = false;
     }
 
-    function forwardToHotWallet(uint _amount) stoppable onlyWithdrawer {
+    function forwardToHotWallet(uint _amount) notPaused onlyWithdrawer {
         require(_amount > 0);
         uint _time = time();
         require(_time > (lastWithdrawTime + 24 hours));
@@ -69,20 +85,33 @@ contract WarmWallet is DSStop, WarmWalletEvents{
         key.transfer(coldWallet, _amount);
     }
 
-    function setWithdrawer(address _withdrawer) auth {
+    function setWithdrawer(address _withdrawer) onlyOwner {
         require(_withdrawer != address(0) );
 
         withdrawer = _withdrawer;
         LogSetWithdrawer(_withdrawer);
     }
 
-    function setWithdrawLimit(uint _limit) auth {
+    function setOwner(address _owner) onlyOwner {
+        owner = _owner;
+        LogSetOwner(_owner);
+    }
+
+    function setWithdrawLimit(uint _limit) onlyOwner {
         require(_limit > 0);
 
         withdrawLimit = _limit;
         LogSetWithdrawLimit(msg.sender, _limit);
     }
 
+
+    function pauseStart() onlyOwner {
+        paused = true;
+    }
+
+    function pauseEnd() onlyOwner {
+        paused = false;
+    }
 
     // @notice This method can be used by the controller to extract mistakenly
     //  sent tokens to this contract.

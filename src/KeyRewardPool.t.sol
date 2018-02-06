@@ -16,11 +16,11 @@ contract KeyRewardPoolOwner {
     }
 
     function stopRewardPool() {
-        pool.stop();
+        pool.pauseCollectToken();
     }
 
     function startRewardPool() {
-        pool.start();
+        pool.resumeCollectToken();
     }
 }
 

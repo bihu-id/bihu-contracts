@@ -64,6 +64,13 @@ contract WarmWalletTest is DSTest {
         assertEq(key.balanceOf(warmWallet), 1000 ether);
     }
 
+    function testWarmWalletOwner() {
+        assertEq(address(warmWallet.owner()), address(this));
+
+        warmWallet.setOwner(0);
+        assertEq(address(warmWallet.owner()), address(0));
+    }
+
     function testForwardToHotWallet() {
         withdrawer.forwardToHotWallet(100 ether);
 
