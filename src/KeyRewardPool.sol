@@ -33,7 +33,7 @@ contract KeyRewardPool is DSMath, DSNote{
         _;
     }
 
-    function KeyRewardPool(uint _rewardStartTime, address _key, address _withdrawer){
+    function KeyRewardPool(uint _rewardStartTime, address _key, address _withdrawer) public{
         require(_rewardStartTime != 0 );
         require(_key != address(0) );
         require(_withdrawer != address(0) );
@@ -47,7 +47,7 @@ contract KeyRewardPool is DSMath, DSNote{
     }
 
     // @notice call this method to extract the tokens
-    function collectToken() notPaused onlyWithdrawer{
+    function collectToken() public notPaused onlyWithdrawer{
         uint _time = time();
         var _key = key;  // create a in memory variable for storage variable will save gas usage.
 
@@ -85,33 +85,33 @@ contract KeyRewardPool is DSMath, DSNote{
     }
 
 
-    function yearFor(uint timestamp) constant returns(uint) {
+    function yearFor(uint timestamp) public constant returns(uint) {
         return timestamp < rewardStartTime
             ? 0
             : sub(timestamp, rewardStartTime) / (365 days);
     }
 
     // overrideable for easy testing
-    function time() constant returns (uint) {
+    function time() public constant returns (uint) {
         return now;
     }
 
-    function setWithdrawer(address _withdrawer) onlyOwner {
+    function setWithdrawer(address _withdrawer) public onlyOwner {
         withdrawer = _withdrawer;
         LogSetWithdrawer(_withdrawer);
     }
 
-    function setOwner(address _owner) onlyOwner {
+    function setOwner(address _owner) public onlyOwner {
         owner = _owner;
         LogSetOwner(_owner);
     }
 
 
-    function pauseCollectToken() onlyOwner {
+    function pauseCollectToken() public onlyOwner {
         paused = true;
     }
 
-    function resumeCollectToken() onlyOwner {
+    function resumeCollectToken() public onlyOwner {
         paused = false;
     }
 

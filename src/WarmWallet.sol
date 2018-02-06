@@ -43,7 +43,7 @@ contract WarmWallet is WarmWalletEvents{
         return now;
     }
 
-    function WarmWallet(DSToken _key, address _hot, address _cold, address _withdrawer, uint _limit){
+    function WarmWallet(DSToken _key, address _hot, address _cold, address _withdrawer, uint _limit) public {
         require(_key != address(0) );
         require(_hot != address(0) );
         require(_cold != address(0) );
@@ -66,7 +66,7 @@ contract WarmWallet is WarmWalletEvents{
         paused = false;
     }
 
-    function forwardToHotWallet(uint _amount) notPaused onlyWithdrawer {
+    function forwardToHotWallet(uint _amount) public notPaused onlyWithdrawer {
         require(_amount > 0);
         uint _time = time();
         require(_time > (lastWithdrawTime + 24 hours));
@@ -80,24 +80,24 @@ contract WarmWallet is WarmWalletEvents{
         key.transfer(hotWallet, amount);
     }
 
-    function restoreToColdWallet(uint _amount) onlyWithdrawer {
+    function restoreToColdWallet(uint _amount) public onlyWithdrawer {
         require(_amount > 0);
         key.transfer(coldWallet, _amount);
     }
 
-    function setWithdrawer(address _withdrawer) onlyOwner {
+    function setWithdrawer(address _withdrawer) public onlyOwner {
         require(_withdrawer != address(0) );
 
         withdrawer = _withdrawer;
         LogSetWithdrawer(_withdrawer);
     }
 
-    function setOwner(address _owner) onlyOwner {
+    function setOwner(address _owner) public onlyOwner {
         owner = _owner;
         LogSetOwner(_owner);
     }
 
-    function setWithdrawLimit(uint _limit) onlyOwner {
+    function setWithdrawLimit(uint _limit) public onlyOwner {
         require(_limit > 0);
 
         withdrawLimit = _limit;
@@ -105,11 +105,11 @@ contract WarmWallet is WarmWalletEvents{
     }
 
 
-    function pauseStart() onlyOwner {
+    function pauseStart() public onlyOwner {
         paused = true;
     }
 
-    function pauseEnd() onlyOwner {
+    function pauseEnd() public onlyOwner {
         paused = false;
     }
 
@@ -118,7 +118,7 @@ contract WarmWallet is WarmWalletEvents{
     // @param dst The address that will be receiving the tokens
     // @param wad The amount of tokens to transfer
     // @param _token The address of the token contract that you want to recover
-    function transferTokens(address dst, uint wad, address _token) onlyWithdrawer {
+    function transferTokens(address dst, uint wad, address _token) public onlyWithdrawer {
         require(_token != address(key));
         if (wad > 0) {
             ERC20 token = ERC20(_token);

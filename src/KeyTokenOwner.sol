@@ -6,17 +6,17 @@ contract KeyTokenOwner is DSAuth{
 
     DSToken public key;
 
-    function KeyTokenOwner(address _key)
+    function KeyTokenOwner(address _key) public
     {
         key = DSToken(_key);
     }
 
-    function stopKeyToken() auth
+    function stopKeyToken() public auth
     {
         key.stop();
     }
 
-    function startKeyToken() auth
+    function startKeyToken() public auth
     {
         key.start();
     }
