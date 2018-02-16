@@ -31,10 +31,27 @@ contract Withdrawer {
 
 }
 
+contract TestableWarmWallet is WarmWallet {
+
+    function TestableWarmWallet(DSToken _key, address _hot, address _cold, address _withdrawer, uint _limit)
+    WarmWallet(_key, _hot, _cold, _withdrawer, _limit) {
+
+    }
+
+    // 'now' is default to 0 in dapp tools(>= 0.8.1),
+    // so I choose a fixed time, otherwise some test cases will fail
+    uint public localTime = 1518566400; //2018-02-14T00:00:00+00:00
+
+    function time() constant returns (uint) {
+        return localTime;
+    }
+}
+
+
 contract WarmWalletTest is DSTest {
 
     DSToken key;
-    WarmWallet warmWallet;
+    TestableWarmWallet warmWallet;
     KeyTokenReborn keyReborn;
 
     address hotWallet = new Wallet();
@@ -50,7 +67,7 @@ contract WarmWalletTest is DSTest {
 
         withdrawer = new Withdrawer(key);
 
-        warmWallet = new WarmWallet(key, hotWallet, coldWallet, withdrawer, 200 ether);
+        warmWallet = new TestableWarmWallet(key, hotWallet, coldWallet, withdrawer, 200 ether);
 
         withdrawer.setWarmWallet(warmWallet);
 

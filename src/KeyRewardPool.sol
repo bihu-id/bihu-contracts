@@ -28,7 +28,7 @@ contract KeyRewardPool is DSMath, DSNote{
         _;
     }
 
-    modifier notPaused() {
+    modifier notPaused {
         require(!paused);
         _;
     }
@@ -37,7 +37,8 @@ contract KeyRewardPool is DSMath, DSNote{
         require(_rewardStartTime != 0 );
         require(_key != address(0) );
         require(_withdrawer != address(0) );
-        require(_rewardStartTime > now - 364 days);
+        uint _time = time();
+        require(_rewardStartTime > _time - 364 days);
 
         rewardStartTime = _rewardStartTime;
         key = DSToken(_key);
@@ -49,9 +50,10 @@ contract KeyRewardPool is DSMath, DSNote{
     // @notice call this method to extract the tokens
     function collectToken() public notPaused onlyWithdrawer{
         uint _time = time();
+        require(_time > rewardStartTime);
+
         var _key = key;  // create a in memory variable for storage variable will save gas usage.
 
-        require(_time > rewardStartTime);
 
         uint balance = _key.balanceOf(address(this));
         uint total = add(collectedTokens, balance);

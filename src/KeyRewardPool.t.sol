@@ -48,10 +48,12 @@ contract TestableKeyRewardPool is KeyRewardPool {
 
     function TestableKeyRewardPool(uint256 _rewardStartTime, address _key, address _withdrawer)
     KeyRewardPool(_rewardStartTime, _key, _withdrawer) {
-        localTime = now;
+
     }
 
-    uint public localTime;
+    // 'now' is default to 0 in dapp tools(>= 0.8.1),
+    // so I choose a fixed time, otherwise some test cases will fail
+    uint public localTime = 1518566400; //2018-02-14T00:00:00+00:00
 
     function time() constant returns (uint) {
         return localTime;
@@ -77,7 +79,7 @@ contract KeyRewardPoolTest is DSTest, DSMath{
         key = keyReborn.key();
 
         poolWithdrawer = new KeyRewardPoolWithdrawer();
-        rewardPool = new TestableKeyRewardPool(now, key, poolWithdrawer);
+        rewardPool = new TestableKeyRewardPool(1518566400, key, poolWithdrawer);
         poolWithdrawer.setKeyRewardPool(rewardPool);
 
         key.transfer(rewardPool, 100 ether);

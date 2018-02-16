@@ -33,7 +33,7 @@ contract WarmWallet is WarmWalletEvents{
         _;
     }
 
-    modifier notPaused() {
+    modifier notPaused {
         require(!paused);
         _;
     }
