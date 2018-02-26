@@ -1,8 +1,6 @@
 pragma solidity 0.4.18;
 
 import "ds-token/token.sol";
-import "ds-auth/auth.sol";
-
 
 contract WarmWalletEvents {
     event LogSetWithdrawer (address indexed withdrawer);
@@ -19,7 +17,7 @@ contract WarmWallet is WarmWalletEvents{
     //@note
     address public withdrawer;
     uint public withdrawLimit;
-    uint256 public lastWithdrawTime;
+    uint public lastWithdrawTime;
     address public owner;
     bool public paused;
 
@@ -69,7 +67,7 @@ contract WarmWallet is WarmWalletEvents{
     function forwardToHotWallet(uint _amount) public notPaused onlyWithdrawer {
         require(_amount > 0);
         uint _time = time();
-        require(_time > (lastWithdrawTime + 24 hours));
+        require((_time - lastWithdrawTime) > 24 hours);
 
         uint amount = _amount;
         if (amount > withdrawLimit) {

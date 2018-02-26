@@ -71,7 +71,7 @@ contract KeyRewardPool is DSMath, DSNote{
         // the reward will be increasing linearly in one year.
         uint canExtractThisYear = div( mul(totalRewardThisYear, (_time - rewardStartTime)  % 365 days), 365 days);
 
-        uint canExtract = canExtractThisYear + total - remainingTokens;
+        uint canExtract = canExtractThisYear + (total - remainingTokens);
 
         canExtract = sub(canExtract, collectedTokens);
 
