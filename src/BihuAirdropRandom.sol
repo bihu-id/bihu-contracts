@@ -1,5 +1,7 @@
 pragma solidity ^0.4.17;
 
+// https://kovan.etherscan.io/address/0xb2F943B7bC60A44C9ebA9771cB21a2E15F0c937A
+
 contract BihuAirdropRandom {
 
     // random range
